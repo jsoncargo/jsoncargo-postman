@@ -3,30 +3,72 @@ name: Validate Collection
 on:
   push:
     branches: [main]
+    paths:
+      - "*.json"
+      - ".github/workflows/validate.yml"
   pull_request:
-    branches: [main]
+    paths:
+      - "*.json"
 
 jobs:
   validate:
+    name: Validate JSON files
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Validate collection JSON
         run: |
+          echo "Validating Postman collection..."
           python3 -c "
-          import json, sys
-          files = [
-            'JSONCargo_API.postman_collection.json',
-            'JSONCargo_API.postman_environment.json'
-          ]
-          for f in files:
-            try:
-              with open(f) as fh:
-                json.load(fh)
-              print(f'PASS: {f}')
-            except Exception as e:
-              print(f'FAIL: {f} — {e}')
-              sys.exit(1)
-          print('All files are valid JSON.')
+          import json, sys, re
+
+          with open('JSONCargo_API.postman_collection.json') as f:
+              c = json.load(f)
+
+          folders = c['item']
+          total = sum(len(f['item']) for f in folders)
+          print(f'Collection: {c[\"info\"][\"name\"]}')
+          print(f'Folders: {len(folders)}')
+          for folder in folders:
+              print(f'  {folder[\"name\"]} - {len(folder[\"item\"])} requests')
+          print(f'Total requests: {total}')
+
+          raw = open('JSONCargo_API.postman_collection.json').read()
+
+          assert '{{api_key}}' in raw, 'Missing api_key variable'
+          assert '{{base_url}}' in raw, 'Missing base_url variable'
+
+          hardcoded = re.findall(r'\"x-api-key\",\s*\"value\":\s*\"(?!\{\{)[a-zA-Z0-9_\-]{20,50}\"', raw)
+          assert not hardcoded, f'Hardcoded API key found: {hardcoded}'
+
+          print('Security check: CLEAN - no hardcoded keys')
+          print('Collection validation passed.')
+          "
+
+      - name: Validate environment JSON
+        run: |
+          echo "Validating environment file..."
+          python3 -c "
+          import json
+
+          with open('JSONCargo_API.postman_environment.json') as f:
+              e = json.load(f)
+
+          keys = [v['key'] for v in e['values']]
+          print(f'Environment: {e[\"name\"]}')
+          print(f'Variables: {keys}')
+
+          assert 'api_key' in keys, 'Missing api_key variable'
+          assert 'base_url' in keys, 'Missing base_url variable'
+
+          api_key_val = next(v['value'] for v in e['values'] if v['key'] == 'api_key')
+          assert api_key_val == '', f'api_key should be empty in template, got: {api_key_val}'
+
+          base_url_val = next(v['value'] for v in e['values'] if v['key'] == 'base_url')
+          assert 'jsoncargo.com' in base_url_val, f'base_url looks wrong: {base_url_val}'
+
+          print('Environment validation passed.')
           "
