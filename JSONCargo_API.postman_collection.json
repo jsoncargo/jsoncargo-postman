@@ -1,0 +1,351 @@
+{
+  "info": {
+    "_postman_id": "80e75a72-f831-4f35-9d6e-9c06c4e7b294",
+    "name": "JSONCargo API",
+    "description": "Official Postman collection for the JSONCargo container and vessel tracking API.\n\nImport the environment file alongside this collection, set your api_key, and you are ready to go.\n\nFull documentation: https://jsoncargo.com/documentation-api/\nGet an API key: https://jsoncargo.com/pricing-plans/",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "📦 Container Tracking",
+      "item": [
+        {
+          "name": "Track a container",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Response has data', function() {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('data');",
+                  "  pm.expect(json.data).to.have.property('container_id');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/containers/MSCU5285725",
+              "host": ["{{base_url}}"],
+              "path": ["containers", "MSCU5285725"]
+            },
+            "description": "Fetch full tracking details for a container. Replace MSCU5285725 with your container number.\n\nIf you get a 404, try adding ?shipping_line=MSC — some prefixes are shared across carriers."
+          },
+          "response": []
+        },
+        {
+          "name": "Track a container (with shipping_line)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Response has container_id', function() {",
+                  "  pm.expect(pm.response.json().data).to.have.property('container_id');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/containers/MNBU0171007?shipping_line=MAERSK",
+              "host": ["{{base_url}}"],
+              "path": ["containers", "MNBU0171007"],
+              "query": [{ "key": "shipping_line", "value": "MAERSK", "description": "Valid values: MAERSK, HAPAG_LLOYD, HMM, ONE, EVERGREEN, MSC, CMA_CGM, COSCO, ZIM, YANG_MING, PIL" }]
+            },
+            "description": "Use shipping_line when the container prefix is shared across multiple carriers.\n\nValid values: MAERSK, HAPAG_LLOYD, HMM, ONE, EVERGREEN, MSC, CMA_CGM, COSCO, ZIM, YANG_MING, PIL"
+          },
+          "response": []
+        },
+        {
+          "name": "Get containers from Bill of Lading",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Response has container numbers', function() {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('associated_container_numbers');",
+                  "  pm.expect(json.data.associated_container_numbers).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/containers/bol/SELM60819800?shipping_line=HMM",
+              "host": ["{{base_url}}"],
+              "path": ["containers", "bol", "SELM60819800"],
+              "query": [{ "key": "shipping_line", "value": "HMM", "description": "Always required for BOL lookups" }]
+            },
+            "description": "Returns all container numbers linked to a bill of lading. shipping_line is always required."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🚢 Vessel Tracking",
+      "item": [
+        {
+          "name": "Vessel Basic",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Response has position data', function() {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('lat');",
+                  "  pm.expect(json.data).to.have.property('lon');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/vessel/basic?mmsi=566093000",
+              "host": ["{{base_url}}"],
+              "path": ["vessel", "basic"],
+              "query": [{ "key": "mmsi", "value": "566093000", "description": "MMSI number. Can also use imo or uuid." }]
+            },
+            "description": "Live vessel position and navigation status. Identify by mmsi, imo, or uuid."
+          },
+          "response": []
+        },
+        {
+          "name": "Vessel Pro",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Response has pro fields', function() {",
+                  "  var json = pm.response.json();",
+                  "  pm.expect(json.data).to.have.property('current_draught');",
+                  "  pm.expect(json.data).to.have.property('dep_port');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/vessel/pro?mmsi=566093000",
+              "host": ["{{base_url}}"],
+              "path": ["vessel", "pro"],
+              "query": [{ "key": "mmsi", "value": "566093000" }]
+            },
+            "description": "Extends basic tracking with departure port, current draught, ATD, and timezone."
+          },
+          "response": []
+        },
+        {
+          "name": "Vessel Bulk (MMSI and IMO)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/vessel/bulk?mmsi=710466000&imo=9457165",
+              "host": ["{{base_url}}"],
+              "path": ["vessel", "bulk"],
+              "query": [
+                { "key": "mmsi", "value": "710466000" },
+                { "key": "imo", "value": "9457165" }
+              ]
+            },
+            "description": "Fetch live data for up to 100 vessels in a single request."
+          },
+          "response": []
+        },
+        {
+          "name": "Vessel Finder",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/vessel/finder?name=Aurora",
+              "host": ["{{base_url}}"],
+              "path": ["vessel", "finder"],
+              "query": [{ "key": "name", "value": "Aurora", "description": "Add &fuzzy=1 for approximate matching." }]
+            },
+            "description": "Search static vessel registry by name, type, flag, tonnage, dimensions, or year built."
+          },
+          "response": []
+        },
+        {
+          "name": "Vessel Specs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/vessel/specs?mmsi=566093000",
+              "host": ["{{base_url}}"],
+              "path": ["vessel", "specs"],
+              "query": [{ "key": "mmsi", "value": "566093000" }]
+            },
+            "description": "Static registry data: dimensions, tonnage, TEU capacity, year built, callsign."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏔 Ports and Terminals",
+      "item": [
+        {
+          "name": "Port Finder",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Response is array', function() {",
+                  "  pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/port/find?country_iso=GB",
+              "host": ["{{base_url}}"],
+              "path": ["port", "find"],
+              "query": [{ "key": "country_iso", "value": "GB", "description": "Two-letter ISO country code" }]
+            },
+            "description": "Search ports by name, country, type, or lat/lon with radius."
+          },
+          "response": []
+        },
+        {
+          "name": "Terminal Info",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "pm.test('Response is array', function() {",
+                  "  pm.expect(pm.response.json().data).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}" }],
+            "url": {
+              "raw": "{{base_url}}/terminal?unlocode=AEJEA&unlocode=BDMUN",
+              "host": ["{{base_url}}"],
+              "path": ["terminal"],
+              "query": [
+                { "key": "unlocode", "value": "AEJEA" },
+                { "key": "unlocode", "value": "BDMUN" }
+              ]
+            },
+            "description": "Returns terminal details for one or more UN/LOCODEs."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔧 Utilities",
+      "item": [
+        {
+          "name": "Prefix Lookup",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/prefix?prefix=aplu",
+              "host": ["{{base_url}}"],
+              "path": ["prefix"],
+              "query": [{ "key": "prefix", "value": "aplu", "description": "4-letter container prefix" }]
+            },
+            "description": "Look up which shipping line owns a container prefix. Run this first if unsure whether shipping_line is required."
+          },
+          "response": []
+        },
+        {
+          "name": "API Key Stats",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code is 200', function() { pm.response.to.have.status(200); });",
+                  "var json = pm.response.json();",
+                  "if (json && json.data) {",
+                  "  pm.environment.set('requests_available', json.data.requests_available);",
+                  "  pm.environment.set('requests_total', json.data.requests_total);",
+                  "  console.log('Plan: ' + json.data.plan);",
+                  "  console.log('Requests: ' + json.data.requests_available + ' / ' + json.data.requests_total + ' remaining');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "x-api-key", "value": "{{api_key}}", "type": "text" }],
+            "url": {
+              "raw": "{{base_url}}/api_key/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api_key", "stats"]
+            },
+            "description": "Returns your plan name and request counts.\n\nRun this first to confirm your API key works. Auto-populates requests_available and requests_total in your environment."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_key",
+      "value": "",
+      "type": "string",
+      "description": "Your JSONCargo API key. Get one at https://jsoncargo.com/pricing-plans/"
+    },
+    {
+      "key": "base_url",
+      "value": "http://api.jsoncargo.com/api/v1",
+      "type": "string"
+    }
+  ]
+}
