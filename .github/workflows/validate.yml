@@ -1,0 +1,32 @@
+name: Validate Collection
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate collection JSON
+        run: |
+          python3 -c "
+          import json, sys
+          files = [
+            'JSONCargo_API.postman_collection.json',
+            'JSONCargo_API.postman_environment.json'
+          ]
+          for f in files:
+            try:
+              with open(f) as fh:
+                json.load(fh)
+              print(f'PASS: {f}')
+            except Exception as e:
+              print(f'FAIL: {f} — {e}')
+              sys.exit(1)
+          print('All files are valid JSON.')
+          "
